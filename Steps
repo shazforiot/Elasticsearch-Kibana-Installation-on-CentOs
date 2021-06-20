@@ -1,0 +1,89 @@
+A) Install ElasticSearch
+
+Run the command:
+
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+Create a file called elasticsearch.repo in the /etc/yum.repos.d/
+
+[elasticsearch]
+name=Elasticsearch repository for 7.x packages
+baseurl=https://artifacts.elastic.co/packages/7.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+
+sudo yum install --enablerepo=elasticsearch elasticsearch
+
+sudo /bin/systemctl daemon-reload
+sudo /bin/systemctl enable elasticsearch.service
+sudo systemctl start elasticsearch.service
+
+B) Install Kibana
+
+
+Download and install the public signing key:
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+Create a file called kibana.repo in the /etc/yum.repos.d/
+
+[kibana-7.x]
+name=Kibana repository for 7.x packages
+baseurl=https://artifacts.elastic.co/packages/7.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+
+
+sudo yum install kibana
+
+sudo /bin/systemctl daemon-reload
+
+sudo /bin/systemctl enable kibana.service
+
+sudo systemctl start kibana.service
+sudo systemctl stop kibana.service
+
+C) Edit the Kibana Config file
+vi /etc/kibana/kibana.yml
+
+Change server.host: "0.0.0.0" from local host
+Un comment : server.port: 5601
+
+D) Enable the ports 9200 and 5601 in firewall
+
+sudo firewall-cmd --permanent --zone=public --add-port=9200/tcp
+sudo firewall-cmd --permanent --zone=public --add-port=5601/tcp
+
+sudo firewall-cmd --reload
+
+E) Create index in Elasticsearch
+
+Check indices using the below command:
+
+curl -X GET "localhost:9200/_cat/indices?v&pretty"
+
+Install Wget using yum install wget
+
+download the json  file using the below command:
+
+wget https://download.elastic.co/demos/kibana/gettingstarted/shakespeare_6.0.json
+
+Bulk import the json file :
+
+curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/shakespeare/doc/_bulk?pretty' --data-binary @shakespeare_6.0.json
+
+Query in DevTool in Kibana
+
+GET _search
+{
+  "query": {
+    "match_phrase": {
+      "text_entry" : "So shaken as we are"
+    }
+  }
+}
